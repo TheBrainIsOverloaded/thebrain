@@ -1,5 +1,5 @@
 // © 2026 TheBrain
-// Dodge Calculator v5 
+// Dodge Calculator v5.1
 
 (function () {
     if (document.getElementById('__dodge_calc')) return;
@@ -23,105 +23,99 @@
         '#__dc .dc-header{padding:14px 16px 10px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #2a0810;cursor:grab;}',
         '#__dc .dc-header:active{cursor:grabbing;}',
         '#__dc .dc-title{font-size:15px;font-weight:700;color:#f8e8ec;letter-spacing:1.5px;text-transform:uppercase;}',
-        '#__dc .dc-title span{color:#c03040;font-weight:400;}',
+        '#__dc .dc-title span{color:#e04050;font-weight:400;}',
         '#__dc .dc-header-btns{display:flex;gap:6px;align-items:center;}',
-        '#__dc .ic-btn{background:none;border:1px solid transparent;color:#d07888;cursor:pointer;font-size:12px;padding:3px 7px;border-radius:4px;transition:all .15s;}',
-        '#__dc .ic-btn:hover{color:#f09090;border-color:#4a0d14;background:#1c0508;}',
+        '#__dc .ic-btn{background:none;border:1px solid transparent;color:#f0a0b0;cursor:pointer;font-size:12px;padding:3px 7px;border-radius:4px;transition:all .15s;}',
+        '#__dc .ic-btn:hover{color:#ffffff;border-color:#6a1020;background:#2a0810;}',
 
         // Tabs
         '#__dc .tabs{display:flex;border-bottom:1px solid #2a0810;background:#0d0102;}',
-        '#__dc .tab{flex:1;padding:9px 4px;text-align:center;font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:#b07880;cursor:pointer;border:none;background:none;transition:color .15s;position:relative;}',
-        '#__dc .tab:hover{color:#e09098;}',
-        '#__dc .tab.active{color:#f09090;}',
-        '#__dc .tab.active::after{content:"";position:absolute;bottom:0;left:20%;right:20%;height:2px;background:linear-gradient(90deg,transparent,#a02030,transparent);}',
+        '#__dc .tab{flex:1;padding:9px 4px;text-align:center;font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:#c08890;cursor:pointer;border:none;background:none;transition:color .15s;position:relative;}',
+        '#__dc .tab:hover{color:#f0b0b8;}',
+        '#__dc .tab.active{color:#f8e8ec;}',
+        '#__dc .tab.active::after{content:"";position:absolute;bottom:0;left:20%;right:20%;height:2px;background:linear-gradient(90deg,transparent,#c02030,transparent);}',
         '#__dc .tab-body{padding:14px 16px 10px;}',
         '#__dc .tab-pane{display:none;}',
         '#__dc .tab-pane.active{display:block;}',
 
-        // Labels
-        '#__dc label{display:block;font-size:11px;font-weight:600;letter-spacing:.9px;text-transform:uppercase;color:#d09098;margin:10px 0 4px;}',
+        // Labels - ZESVĚTLENO PRO LEPŠÍ ČITELNOST
+        '#__dc label{display:block;font-size:11px;font-weight:600;letter-spacing:.9px;text-transform:uppercase;color:#e8d0d4;margin:10px 0 4px;}',
 
         // Inputs
-        '#__dc input[type=text],#__dc input[type=number]{width:100%;background:#1e060a;color:#f8e8ec;border:1px solid #4a1020;border-radius:6px;padding:7px 10px;font-size:13px;font-family:"JetBrains Mono",monospace;box-sizing:border-box;outline:none;transition:border-color .15s,box-shadow .15s;}',
-        '#__dc input[type=text]:focus,#__dc input[type=number]:focus{border-color:#9b2030;box-shadow:0 0 0 2px rgba(155,32,48,.3);}',
-        '#__dc input[type=text]::placeholder,#__dc input[type=number]::placeholder{color:#8a5860;font-family:"JetBrains Mono",monospace;}',
-        '#__dc input[type=range]{width:100%;accent-color:#a02030;margin:4px 0;cursor:pointer;}',
+        '#__dc input[type=text],#__dc input[type=number]{width:100%;background:#1e060a;color:#f8e8ec;border:1px solid #6a1525;border-radius:6px;padding:7px 10px;font-size:13px;font-family:"JetBrains Mono",monospace;box-sizing:border-box;outline:none;transition:border-color .15s,box-shadow .15s;}',
+        '#__dc input[type=text]:focus,#__dc input[type=number]:focus{border-color:#c03040;box-shadow:0 0 0 2px rgba(192,48,64,.3);}',
+        '#__dc input[type=text]::placeholder,#__dc input[type=number]::placeholder{color:#7a5058;font-family:"JetBrains Mono",monospace;}',
+        '#__dc input[type=range]{width:100%;accent-color:#c03040;margin:4px 0;cursor:pointer;}',
 
         // Grid
         '#__dc .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}',
         '#__dc .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}',
 
         // Buttons
-        '#__dc .btn-primary{width:100%;margin-top:12px;padding:10px;background:linear-gradient(135deg,#6a1020,#a02030);color:#fce8ec;border:1px solid #9b2030;border-radius:7px;cursor:pointer;font-size:12px;font-weight:700;font-family:"Rajdhani",sans-serif;letter-spacing:1.5px;text-transform:uppercase;transition:all .2s;}',
-        '#__dc .btn-primary:hover{background:linear-gradient(135deg,#7a1525,#c03040);box-shadow:0 0 18px rgba(160,32,48,.4);}',
-        '#__dc .btn-stop{width:100%;margin-top:6px;padding:8px;background:#150305;color:#c06070;border:1px solid #3a0a14;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;font-family:"Rajdhani",sans-serif;letter-spacing:1px;text-transform:uppercase;display:none;transition:all .15s;}',
-        '#__dc .btn-stop:hover{border-color:#5a1a20;color:#e07888;}',
-        '#__dc .btn-sm{padding:5px 10px;font-size:11px;font-weight:600;letter-spacing:.5px;border:1px solid #4a1820;background:#1c0608;color:#d07888;border-radius:5px;cursor:pointer;font-family:"Rajdhani",sans-serif;transition:all .15s;}',
-        '#__dc .btn-sm:hover{border-color:#9b2030;color:#f09090;}',
+        '#__dc .btn-primary{width:100%;margin-top:12px;padding:10px;background:linear-gradient(135deg,#8a1525,#c02030);color:#ffffff;border:1px solid #d03040;border-radius:7px;cursor:pointer;font-size:12px;font-weight:700;font-family:"Rajdhani",sans-serif;letter-spacing:1.5px;text-transform:uppercase;transition:all .2s;}',
+        '#__dc .btn-primary:hover{background:linear-gradient(135deg,#a02030,#e03040);box-shadow:0 0 18px rgba(192,48,64,.5);}',
+        '#__dc .btn-stop{width:100%;margin-top:6px;padding:8px;background:#150305;color:#f08090;border:1px solid #5a1020;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;font-family:"Rajdhani",sans-serif;letter-spacing:1px;text-transform:uppercase;display:none;transition:all .15s;}',
+        '#__dc .btn-stop:hover{border-color:#902030;color:#ffacb8;}',
+        '#__dc .btn-sm{padding:5px 10px;font-size:11px;font-weight:600;letter-spacing:.5px;border:1px solid #6a1825;background:#1c0608;color:#f0a0b0;border-radius:5px;cursor:pointer;font-family:"Rajdhani",sans-serif;transition:all .15s;}',
+        '#__dc .btn-sm:hover{border-color:#c03040;color:#ffffff;}',
 
         // Badges
         '#__dc .badge{display:inline-block;padding:4px 10px;border-radius:4px;font-size:12px;font-weight:600;letter-spacing:.4px;margin-bottom:6px;font-family:"Rajdhani",sans-serif;}',
-        '#__dc .ok{background:#0a1e0a;color:#7ad87a;border:1px solid #1e4420;}',
-        '#__dc .warn{background:#221800;color:#e8b840;border:1px solid #443000;}',
-        '#__dc .err{background:#220508;color:#f06060;border:1px solid #480a14;}',
-        '#__dc .info{background:#060f1f;color:#60a0e0;border:1px solid #0c2844;}',
+        '#__dc .ok{background:#0a1e0a;color:#9aff9a;border:1px solid #2e6030;}',
+        '#__dc .warn{background:#221800;color:#ffcc50;border:1px solid #664800;}',
+        '#__dc .err{background:#220508;color:#ff7070;border:1px solid #781020;}',
+        '#__dc .info{background:#060f1f;color:#80c0ff;border:1px solid #1c4870;}',
 
-        // Hint
-        '#__dc .hint{font-size:11.5px;color:#9a6870;margin-top:3px;letter-spacing:.2px;}',
+        // Hint - ZESVĚTLENO (původní byla #9a6870, nyní světlejší)
+        '#__dc .hint{font-size:11.5px;color:#c0a0a8;margin-top:3px;letter-spacing:.2px;}',
 
         // Results
         '#__dc .res-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #2a0810;}',
         '#__dc .res-row:last-child{border:none;}',
-        '#__dc .res-lbl{color:#c09098;font-size:12.5px;font-weight:600;letter-spacing:.4px;}',
-        '#__dc .res-val{font-family:"JetBrains Mono",monospace;font-weight:500;font-size:12.5px;color:#f8e8ec;}',
+        '#__dc .res-lbl{color:#e8ccd0;font-size:12.5px;font-weight:600;letter-spacing:.4px;}',
+        '#__dc .res-val{font-family:"JetBrains Mono",monospace;font-weight:500;font-size:12.5px;color:#ffffff;}',
 
         // Section titles
-        '#__dc .section-title{font-size:11px;color:#e05060;text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin:14px 0 8px;border-bottom:1px solid #220810;padding-bottom:5px;}',
+        '#__dc .section-title{font-size:11px;color:#ff6070;text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin:14px 0 8px;border-bottom:1px solid #3a0d14;padding-bottom:5px;}',
 
         // Checkboxes
         '#__dc .cb-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}',
-        '#__dc .cb-row input[type=checkbox]{width:auto;margin:0;accent-color:#a02030;cursor:pointer;}',
-        '#__dc .cb-row label{margin:0;color:#d09098;font-size:13px;font-weight:600;letter-spacing:.3px;cursor:pointer;}',
+        '#__dc .cb-row input[type=checkbox]{width:auto;margin:0;accent-color:#c02030;cursor:pointer;}',
+        '#__dc .cb-row label{margin:0;color:#e8d0d4;font-size:13px;font-weight:600;letter-spacing:.3px;cursor:pointer;}',
 
         // Range rows
         '#__dc .range-row{display:flex;align-items:center;gap:8px;}',
-        '#__dc .range-row span{font-size:12px;color:#e06070;min-width:52px;text-align:right;font-family:"JetBrains Mono",monospace;font-weight:500;}',
+        '#__dc .range-row span{font-size:12px;color:#ff8090;min-width:52px;text-align:right;font-family:"JetBrains Mono",monospace;font-weight:500;}',
 
         // History
-        '#__dc .hist-row{font-size:12px;padding:7px 0;border-bottom:1px solid #2a0810;color:#d0a0a8;display:flex;justify-content:space-between;align-items:center;}',
+        '#__dc .hist-row{font-size:12px;padding:7px 0;border-bottom:1px solid #2a0810;color:#e8ccd0;display:flex;justify-content:space-between;align-items:center;}',
         '#__dc .hist-row:last-child{border:none;}',
-        '#__dc .hist-load{font-size:11px;font-weight:700;letter-spacing:.5px;color:#d05060;cursor:pointer;text-transform:uppercase;transition:color .15s;}',
-        '#__dc .hist-load:hover{color:#f07888;}',
+        '#__dc .hist-load{font-size:11px;font-weight:700;letter-spacing:.5px;color:#ff6070;cursor:pointer;text-transform:uppercase;transition:color .15s;}',
+        '#__dc .hist-load:hover{color:#ffffff;}',
 
         // Travel result
-        '#__dc .travel-result{background:#0e0102;border:1px solid #3a0a14;border-radius:8px;padding:12px;margin-top:10px;font-family:"JetBrains Mono",monospace;font-size:13px;color:#a02030;text-align:center;display:none;}',
+        '#__dc .travel-result{background:#0e0102;border:1px solid #4a0d14;border-radius:8px;padding:12px;margin-top:10px;font-family:"JetBrains Mono",monospace;font-size:13px;color:#e03040;text-align:center;display:none;}',
 
         // Countdown (orientační)
-        '#__dc .cd-box{text-align:center;font-size:28px;font-family:"JetBrains Mono",monospace;font-weight:500;padding:10px 12px 4px;background:#0e0102;border:1px solid #2a0810;border-radius:8px 8px 0 0;margin-top:10px;letter-spacing:3px;color:#d05068;}',
-        '#__dc .cd-lbl{font-size:10px;color:#b07880;text-align:center;letter-spacing:1px;text-transform:uppercase;font-weight:600;background:#0e0102;border:1px solid #2a0810;border-top:none;border-radius:0;padding:2px 12px 6px;}',
-        '#__dc .cd-warn{font-size:10px;color:#7a4048;text-align:center;letter-spacing:.3px;background:#0e0102;border:1px solid #2a0810;border-top:none;border-radius:0 0 8px 8px;padding:4px 12px 7px;line-height:1.4;}',
-        '#__dc .cd-warn b{color:#c06070;}',
+        '#__dc .cd-box{text-align:center;font-size:28px;font-family:"JetBrains Mono",monospace;font-weight:500;padding:10px 12px 4px;background:#0a0102;border:1px solid #3a0d14;border-radius:8px 8px 0 0;margin-top:10px;letter-spacing:3px;color:#ff5068;}',
+        '#__dc .cd-lbl{font-size:10px;color:#e8d0d4;text-align:center;letter-spacing:1px;text-transform:uppercase;font-weight:600;background:#0a0102;border:1px solid #3a0d14;border-top:none;border-radius:0;padding:2px 12px 6px;}',
+        '#__dc .cd-warn{font-size:10px;color:#c08890;text-align:center;letter-spacing:.3px;background:#0a0102;border:1px solid #3a0d14;border-top:none;border-radius:0 0 8px 8px;padding:4px 12px 7px;line-height:1.4;}',
+        '#__dc .cd-warn b{color:#ff7080;}',
 
         // Alert log
-        '#__dc .alert-log{font-size:11px;color:#a07080;margin-top:8px;max-height:60px;overflow-y:auto;font-family:"JetBrains Mono",monospace;}',
-        '#__dc .alert-log div{padding:1px 0;}',
-        '#__dc .alert-log .al-warn{color:#e0b840;}',
-        '#__dc .alert-log .al-send{color:#90b848;}',
-        '#__dc .alert-log .al-cancel{color:#e08040;}',
-        '#__dc .scrollbar::-webkit-scrollbar{width:3px;}',
-        '#__dc .scrollbar::-webkit-scrollbar-thumb{background:#3a0a14;border-radius:2px;}',
+        '#__dc .alert-log{font-size:11px;color:#d0a0b0;margin-top:8px;max-height:60px;overflow-y:auto;font-family:"JetBrains Mono",monospace;}',
+        '#__dc .scrollbar::-webkit-scrollbar-thumb{background:#5a1020;border-radius:2px;}',
 
         // Select
-        '#__dc select{width:100%;background:#1e060a;color:#f8e8ec;border:1px solid #4a1020;border-radius:6px;padding:7px 10px;font-size:12.5px;font-family:"Rajdhani",sans-serif;font-weight:500;outline:none;cursor:pointer;transition:border-color .15s;}',
-        '#__dc select:focus{border-color:#9b2030;}',
-        '#__dc select option{background:#1e060a;color:#f8e8ec;}',
+        '#__dc select{width:100%;background:#1e060a;color:#f8e8ec;border:1px solid #6a1525;border-radius:6px;padding:7px 10px;font-size:12.5px;font-family:"Rajdhani",sans-serif;font-weight:500;outline:none;cursor:pointer;transition:border-color .15s;}',
 
         // Footer
-        '#__dc .dc-footer{text-align:center;padding:8px 0 10px;font-size:10px;color:#6a3840;letter-spacing:.5px;font-weight:500;border-top:1px solid #220810;margin-top:4px;}',
-        '#__dc .dc-footer span{color:#8a4850;}',
+        '#__dc .dc-footer{text-align:center;padding:8px 0 10px;font-size:10px;color:#a07078;letter-spacing:.5px;font-weight:500;border-top:1px solid #2a0810;margin-top:4px;}',
+        '#__dc .dc-footer span{color:#e8d0d4;}',
     ].join('');
     document.head.appendChild(s);
 
+    // ... (zbytek kódu zůstává stejný)
     // ─── TOOLTIP ENGINE ───────────────────────────────────────────────────────
     var tipEl = document.createElement('div');
     tipEl.className = 'dc-tip';
@@ -157,7 +151,7 @@
         el.addEventListener('mousemove',  function(e){ positionTip(e); });
         el.addEventListener('mouseleave', hideTip);
         el.addEventListener('focus',      function(e){ showTip(e, text); });
-        el.addEventListener('blur',       hideTip);
+        el.addEventListener('blur',        hideTip);
     }
 
     // ─── BUILD PANEL ─────────────────────────────────────────────────────────
@@ -606,8 +600,6 @@
     }
 
     // ─── ALERT LOOP ──────────────────────────────────────────────────────────
-    // Alerty přes setTimeout. Odpočet je jen orientační — tikne každou sekundu,
-    // ale uživatel se musí řídit serverovým časem ve hře.
     var alertTimers = [], cdInterval = null, calcData = null;
 
     function stopAlerts() {
@@ -617,7 +609,7 @@
     }
 
     function scheduleAlert(delayMs, fn) {
-        if (delayMs < 0) return; // minulost, přeskočit
+        if (delayMs < 0) return;
         alertTimers.push(setTimeout(fn, delayMs));
     }
 
@@ -648,24 +640,21 @@
         saveHistory({retStr:retStr, impStr:impStr, cancelS:cancelS, ts:Date.now()});
         saveLastInputs(impStr, retStr, cancelS);
 
-        // ── Statické zobrazení výsledků ──────────────────────────────────────
         var sec = document.createElement('div');
-        sec.style.cssText = 'border-top:1px solid #220810;padding-top:10px;margin-top:10px;';
-        if (impMs) sec.appendChild(mkRow('Dopad útoku',                 fmtT(impMs),      ''));
-        sec.appendChild(mkRow('➤  Odeslat dodge',                       fmtT(sendTime),   '#f09090'));
-        sec.appendChild(mkRow('✕  Zrušit (za '+(cancelS/60).toFixed(1)+'min)', fmtT(cancelTime), '#e8c040'));
-        sec.appendChild(mkRow('↩  Vojsko zpět',                        fmtT(retMs),      '#7ad87a'));
+        sec.style.cssText = 'border-top:1px solid #3a0d14;padding-top:10px;margin-top:10px;';
+        if (impMs) sec.appendChild(mkRow('Dopad útoku',                   fmtT(impMs),      ''));
+        sec.appendChild(mkRow('➤  Odeslat dodge',                        fmtT(sendTime),   '#ff8090'));
+        sec.appendChild(mkRow('✕  Zrušit (za '+(cancelS/60).toFixed(1)+'min)', fmtT(cancelTime), '#ffcc50'));
+        sec.appendChild(mkRow('↩  Vojsko zpět',                        fmtT(retMs),      '#9aff9a'));
         sec.appendChild(mkRow('Vojsko pryč',                            (cancelS*2/60).toFixed(1)+' min', ''));
         resArea.appendChild(sec);
 
-        // ── Orientační odpočet s varováním ───────────────────────────────────
         var cdBox = document.createElement('div'); cdBox.className = 'cd-box'; cdBox.id = '__dc_cdbox'; cdBox.textContent = '--:--:---';
         var cdLbl = document.createElement('div'); cdLbl.className = 'cd-lbl'; cdLbl.id = '__dc_cdlbl'; cdLbl.textContent = 'orientační odpočet do odeslání';
         var cdWarn = document.createElement('div'); cdWarn.className = 'cd-warn';
         cdWarn.innerHTML = '⚠ <b>Pouze orientační</b> — řiď se serverovým časem ve hře';
         resArea.appendChild(cdBox); resArea.appendChild(cdLbl); resArea.appendChild(cdWarn);
 
-        // Interval tikne každou sekundu — jen aktualizuje odpočet, nespouští alerty
         cdInterval = setInterval(function(){
             var n = Date.now();
             var toS = calcData.sendTime - n;
@@ -676,23 +665,22 @@
 
             if (toS > 0) {
                 cdEl.textContent = fmtCnt(toS);
-                cdEl.style.color = toS < 60000 ? '#f06060' : (toS < 180000 ? '#e8c040' : '#d05068');
+                cdEl.style.color = toS < 60000 ? '#ff5060' : (toS < 180000 ? '#ffcc50' : '#ff7088');
                 cdLEl.textContent = 'orientační odpočet do odeslání';
             } else if (toC > 0) {
                 cdEl.textContent = fmtCnt(toC);
-                cdEl.style.color = toC < 60000 ? '#f06060' : '#d0b040';
+                cdEl.style.color = toC < 60000 ? '#ff5060' : '#ffd060';
                 cdLEl.textContent = 'orientační odpočet do zrušení';
             } else {
                 cdEl.textContent = 'HOTOVO ✓';
-                cdEl.style.color = '#7ad87a';
+                cdEl.style.color = '#9aff9a';
                 cdLEl.textContent = 'vojsko na cestě zpět';
                 clearInterval(cdInterval); cdInterval = null;
             }
         }, 1000);
 
-        // ── Log alertů ───────────────────────────────────────────────────────
         var logLbl = document.createElement('div');
-        logLbl.className = 'hint'; logLbl.style.cssText = 'margin-top:8px;color:#7a4048;';
+        logLbl.className = 'hint'; logLbl.style.cssText = 'margin-top:8px;color:#c08890;';
         logLbl.textContent = '— log alertů —';
         var logEl = document.createElement('div');
         logEl.className = 'alert-log scrollbar'; logEl.id = '__dc_alertlog';
@@ -705,9 +693,6 @@
         var A1     = parseInt(document.getElementById('__dc_alert1').value||3) * 60000;
         var A2     = parseInt(document.getElementById('__dc_alert2').value||3) * 60000;
 
-        // ── Naplánovat alerty pomocí setTimeout ──────────────────────────────
-
-        // Alert X minut před odesláním
         var toSendAlert = sendTime - A1 - Date.now();
         scheduleAlert(toSendAlert, function(){
             if(sndOn) alertSound('send');
@@ -715,40 +700,34 @@
             if(discOn) discord('⚔️ **Dodge** — za '+(A1/60000)+' min odešli útok!\n➤ Odeslat: `'+fmtT(sendTime)+'`\n✕ Zrušit: `'+fmtT(cancelTime)+'`\n↩ Návrat: `'+fmtT(retMs)+'`');
         });
 
-        // Alert 1 minutu před odesláním
         scheduleAlert(sendTime - 60000 - Date.now(), function(){
             if(sndOn) alertSound('send');
             addLog('Alert: ZA 1 MINUTU odesílej!', 'al-warn');
             if(discOn) discord('🚨 **Dodge** — za 1 minutu odešli útok!\n➤ Odeslat: `'+fmtT(sendTime)+'`');
         });
 
-        // Přesný čas odeslání
         scheduleAlert(sendTime - Date.now(), function(){
             if(sndOn) alertSound('send');
             addLog('→ ČAS ODESLÁNÍ!', 'al-send');
         });
 
-        // Alert X minut před zrušením
         scheduleAlert(cancelTime - A2 - Date.now(), function(){
             if(sndOn) alertSound('cancel');
             addLog('Alert: za '+(A2/60000)+' min rušíš!', 'al-cancel');
             if(discOn) discord('⏱️ **Dodge** — za '+(A2/60000)+' min zruš útok!\n✕ Zrušit: `'+fmtT(cancelTime)+'`\n↩ Návrat: `'+fmtT(retMs)+'`');
         });
 
-        // Alert 1 minutu před zrušením
         scheduleAlert(cancelTime - 60000 - Date.now(), function(){
             if(sndOn) alertSound('cancel');
             addLog('Alert: ZA 1 MINUTU ruš!', 'al-warn');
             if(discOn) discord('🚨 **Dodge** — za 1 minutu zruš útok!\n✕ Zrušit: `'+fmtT(cancelTime)+'`');
         });
 
-        // Přesný čas zrušení
         scheduleAlert(cancelTime - Date.now(), function(){
             if(sndOn) alertSound('cancel');
             addLog('→ ČAS ZRUŠENÍ!', 'al-cancel');
         });
 
-        // Dokončeno — vojsko na cestě zpět
         scheduleAlert(retMs - Date.now(), function(){
             addLog('✓ Sekvence dokončena', 'al-send');
             document.getElementById('__dc_stopbtn').style.display = 'none';
@@ -756,3 +735,4 @@
     }
 
 })();
+// Powered by TheBrain🧠
