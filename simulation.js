@@ -581,7 +581,7 @@ function buildContent() {
                             <input type="button" value="${t('export')}" onclick="exports()">
                             &nbsp;
                             <input type="button" value="${t('import')}" onclick="imports()">
-                            <b><code>Created by <a href="${forumURL}" target="_blank">öreg</a> &nbsp;|&nbsp; <span class="brain-inline">Powered by TheBrain 🧠</span></code></b>
+                            <b><code><span class="brain-inline">Powered by TheBrain 🧠</span></code></b>
                         </td>
                     </tr>
                 </tbody>
