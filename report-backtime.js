@@ -1,7 +1,7 @@
 /**
  * Script: Backtime Calculator
- * Version: 0.3.1 (Fix: CZ version not properly running) // > > Český kmeny mají vždycky něco spešl
- * Author: TheBrain
+ * Version: 0.3.2 (Fix: Klasický problémy s CZ diakritikou)
+ * Author: TheBrain🧠
  */
 
 (function() {
@@ -56,33 +56,36 @@
         }
     }
 
-    // --- OPRAVENÁ FUNKCE ---
     function findBattleTime() {
         var battleTimeCell = $("#content_value").find("td:contains('Čas bitvy'), td:contains('Battle time')").next();
-        var battleTimeText = battleTimeCell.text().trim(); // např. "11.04.26 13:19:01"
+        // Použijeme textContent, aby se neořezaly důležité části, a nahradíme nezlomitelné mezery
+        var battleTimeText = battleTimeCell[0].textContent.trim().replace(/\u00a0/g, " "); 
         
-        // Odstraníme milisekundy, pokud tam jsou (:013)
-        battleTimeText = battleTimeText.replace(/:\d{3}$/, "");
+        // Vyhledáme všechna čísla v řetězci (den, měsíc, rok, hod, min, sek)
+        // Ignorujeme milisekundy na konci, pokud jich je víc než 6 (bereme prvních 6 čísel)
+        var parts = battleTimeText.match(/\d+/g);
 
-        // Použijeme regex k rozdělení na části
-        // regex hledá DD.MM.YY HH:MM:SS
-        var match = battleTimeText.match(/^(\d{2})\.(\d{2})\.(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/);
-
-        if (!match) {
-            throw new Error("Nepodařilo se přečíst formát času bitvy.");
+        if (!parts || parts.length < 6) {
+            throw new Error("Nepodařilo se přečíst formát času bitvy (nalezeno málo čísel).");
         }
 
-        // Vytvoříme datum ručně: new Date(rok, měsíc-1, den, hod, min, sek)
-        // Rok 20xx přičteme ručně
-        let year = 2000 + parseInt(match[3]);
-        let month = parseInt(match[2]) - 1; // Měsíce jsou 0-11
-        let day = parseInt(match[1]);
-        let hour = parseInt(match[4]);
-        let min = parseInt(match[5]);
-        let sec = parseInt(match[6]);
+        // parts[0]=den, [1]=měsíc, [2]=rok, [3]=hodina, [4]=minuta, [5]=sekunda
+        let day = parseInt(parts[0]);
+        let month = parseInt(parts[1]) - 1;
+        let year = parseInt(parts[2]);
+        if (year < 100) year += 2000; // Ošetření pro formát 26 -> 2026
+        
+        let hour = parseInt(parts[3]);
+        let min = parseInt(parts[4]);
+        let sec = parseInt(parts[5]);
 
         let dateObj = new Date(year, month, day, hour, min, sec);
-        return dateObj.getTime(); // vrací Unix timestamp v ms
+        
+        if (isNaN(dateObj.getTime())) {
+            throw new Error("Vytvořené datum je neplatné.");
+        }
+
+        return dateObj.getTime();
     }
 
     function calculateDistance(to, from) {
@@ -115,7 +118,7 @@
         
         Dialog.show("backtime_results", `
             <div style="padding: 10px;">
-                <h3 style="margin-bottom:10px;">Backtime Helper v0.3.1</h3>
+                <h3 style="margin-bottom:10px;">Backtime Helper v0.3.2</h3>
                 <table class="vis" style="width:100%">
                     <tr><td>Vzdálenost:</td><td><b>${distance.toFixed(2)} polí</b></td></tr>
                     <tr><td>Nejpomalejší jednotka:</td><td><b>${unitType}</b></td></tr>
