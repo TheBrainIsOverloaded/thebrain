@@ -1,6 +1,6 @@
 /**
  * Script: Backtime Calculator
- * Version: 0.3
+ * Version: 0.3.1 (Fix: CZ version not properly running) // > > Český kmeny mají vždycky něco spešl
  * Author: TheBrain
  */
 
@@ -33,7 +33,7 @@
             var defenseCoords = defenseAnchor.text().match(/\d+\|\d+/)[0];
 
             var distance = calculateDistance(attackCoords, defenseCoords);
-            let battleTime = findBattleTime();
+            let battleTimeMs = findBattleTime();
 
             let units = {
                 "spear": parseInt($(".unit-item-spear").first().text()) || 0,
@@ -50,17 +50,39 @@
                 "snob": parseInt($(".unit-item-snob").first().text()) || 0,
             };
 
-            calculateBacktimeTime(units, unitSpeedSettings, distance, battleTime);
+            calculateBacktimeTime(units, unitSpeedSettings, distance, battleTimeMs);
         } catch (e) {
             UI.ErrorMessage("Chyba: " + e.message);
         }
     }
 
+    // --- OPRAVENÁ FUNKCE ---
     function findBattleTime() {
         var battleTimeCell = $("#content_value").find("td:contains('Čas bitvy'), td:contains('Battle time')").next();
-        var battleTimeText = battleTimeCell.text().trim();
-        // Návratové milisekundy jsou vždy 000, ignorujeme případné ms v reportu
-        return Date.parse(battleTimeText.replace(/:\d{3}$/, ""));
+        var battleTimeText = battleTimeCell.text().trim(); // např. "11.04.26 13:19:01"
+        
+        // Odstraníme milisekundy, pokud tam jsou (:013)
+        battleTimeText = battleTimeText.replace(/:\d{3}$/, "");
+
+        // Použijeme regex k rozdělení na části
+        // regex hledá DD.MM.YY HH:MM:SS
+        var match = battleTimeText.match(/^(\d{2})\.(\d{2})\.(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/);
+
+        if (!match) {
+            throw new Error("Nepodařilo se přečíst formát času bitvy.");
+        }
+
+        // Vytvoříme datum ručně: new Date(rok, měsíc-1, den, hod, min, sek)
+        // Rok 20xx přičteme ručně
+        let year = 2000 + parseInt(match[3]);
+        let month = parseInt(match[2]) - 1; // Měsíce jsou 0-11
+        let day = parseInt(match[1]);
+        let hour = parseInt(match[4]);
+        let min = parseInt(match[5]);
+        let sec = parseInt(match[6]);
+
+        let dateObj = new Date(year, month, day, hour, min, sec);
+        return dateObj.getTime(); // vrací Unix timestamp v ms
     }
 
     function calculateDistance(to, from) {
@@ -80,23 +102,20 @@
         return null;
     }
 
-    function calculateBacktimeTime(units, unitSpeedSettings, distance, battleTime) {
+    function calculateBacktimeTime(units, unitSpeedSettings, distance, battleTimeMs) {
         let unitType = findSlowestUsedUnit(units, unitSpeedSettings);
         if (!unitType) {
             UI.ErrorMessage("Nenalezeny žádné útočící jednotky.");
             return;
         }
 
-        // Výpočet: vteřiny cesty zaokrouhlené dolů (floor)
         let travelTimeSeconds = Math.floor(unitSpeedSettings[unitType] * distance * 60);
-        
-        // Výsledný čas návratu (ms jsou vždy .000)
-        let unixReturnDate = battleTime + (travelTimeSeconds * 1000);
+        let unixReturnDate = battleTimeMs + (travelTimeSeconds * 1000);
         let returnDate = new Date(unixReturnDate);
         
         Dialog.show("backtime_results", `
             <div style="padding: 10px;">
-                <h3 style="margin-bottom:10px;">Backtime Helper v0.3</h3>
+                <h3 style="margin-bottom:10px;">Backtime Helper v0.3.1</h3>
                 <table class="vis" style="width:100%">
                     <tr><td>Vzdálenost:</td><td><b>${distance.toFixed(2)} polí</b></td></tr>
                     <tr><td>Nejpomalejší jednotka:</td><td><b>${unitType}</b></td></tr>
