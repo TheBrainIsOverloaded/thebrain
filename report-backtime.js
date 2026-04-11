@@ -1,119 +1,122 @@
-let availableUnits = {};
-let unitSpeedSettings;
+/**
+ * Script: Backtime Calculator
+ * Version: 0.3
+ * Author: TheBrain
+ */
 
-$.when($.get('/interface.php?func=get_unit_info')).done(function(xml) {
-    $(xml).find('config').children().each((index, unit) => {
-        availableUnits[$(unit).prop('nodeName')] = parseFloat($(unit).find('speed').text());
-    });
-    unitSpeedSettings = availableUnits;
-}).then(() => {
-    console.log("Data o jednotkách přijata");
-    getReportInformation(unitSpeedSettings);
-});
+(function() {
+    let availableUnits = {};
+    let unitSpeedSettings;
 
-function getReportInformation(unitSpeedSettings) {
-    try {
-        const attackAnchor = $("#attack_info_att .village_anchor a");
-        const defenseAnchor = $("#attack_info_def .village_anchor a");
+    const runScript = () => {
+        $.when($.get('/interface.php?func=get_unit_info')).done(function(xml) {
+            $(xml).find('config').children().each((index, unit) => {
+                availableUnits[$(unit).prop('nodeName')] = parseFloat($(unit).find('speed').text());
+            });
+            unitSpeedSettings = availableUnits;
+        }).then(() => {
+            console.log("Backtime Helper: Data o jednotkách načtena.");
+            getReportInformation(unitSpeedSettings);
+        });
+    };
 
-        var attackVillage = {
-            "coordinates": attackAnchor.text().match(/\d+\|\d+/)[0],
-        };
+    function getReportInformation(unitSpeedSettings) {
+        try {
+            const attackAnchor = $("#attack_info_att .village_anchor a");
+            const defenseAnchor = $("#attack_info_def .village_anchor a");
 
-        var defenseVillage = {
-            "coordinates": defenseAnchor.text().match(/\d+\|\d+/)[0],
-        };
+            if (!attackAnchor.length || !defenseAnchor.length) {
+                throw new Error("Nenalezeny vesnice. Jste v náhledu oznámení?");
+            }
 
-        var distance = calculateDistance(attackVillage.coordinates, defenseVillage.coordinates);
-        let battleTime = findBattleTime();
+            var attackCoords = attackAnchor.text().match(/\d+\|\d+/)[0];
+            var defenseCoords = defenseAnchor.text().match(/\d+\|\d+/)[0];
 
-        // Rozšířený seznam jednotek o luky
-        let units = {
-            "spear": parseInt($(".unit-item-spear").text()) || 0,
-            "sword": parseInt($(".unit-item-sword").text()) || 0,
-            "axe": parseInt($(".unit-item-axe").text()) || 0,
-            "archer": parseInt($(".unit-item-archer").text()) || 0,
-            "spy": parseInt($(".unit-item-spy").text()) || 0,
-            "light": parseInt($(".unit-item-light").text()) || 0,
-            "marcher": parseInt($(".unit-item-marcher").text()) || 0,
-            "heavy": parseInt($(".unit-item-heavy").text()) || 0,
-            "ram": parseInt($(".unit-item-ram").text()) || 0,
-            "catapult": parseInt($(".unit-item-catapult").text()) || 0,
-            "knight": parseInt($(".unit-item-knight").text()) || 0,
-            "snob": parseInt($(".unit-item-snob").text()) || 0,
-        };
+            var distance = calculateDistance(attackCoords, defenseCoords);
+            let battleTime = findBattleTime();
 
-        calculateBacktimeTime(units, unitSpeedSettings, distance, battleTime);
-    } catch (e) {
-        UI.ErrorMessage("Chyba při analýze reportu. Ujistěte se, že jste v náhledu oznámení.");
-        console.error(e);
-    }
-}
+            let units = {
+                "spear": parseInt($(".unit-item-spear").first().text()) || 0,
+                "sword": parseInt($(".unit-item-sword").first().text()) || 0,
+                "axe": parseInt($(".unit-item-axe").first().text()) || 0,
+                "archer": parseInt($(".unit-item-archer").first().text()) || 0,
+                "spy": parseInt($(".unit-item-spy").first().text()) || 0,
+                "light": parseInt($(".unit-item-light").first().text()) || 0,
+                "marcher": parseInt($(".unit-item-marcher").first().text()) || 0,
+                "heavy": parseInt($(".unit-item-heavy").first().text()) || 0,
+                "ram": parseInt($(".unit-item-ram").first().text()) || 0,
+                "catapult": parseInt($(".unit-item-catapult").first().text()) || 0,
+                "knight": parseInt($(".unit-item-knight").first().text()) || 0,
+                "snob": parseInt($(".unit-item-snob").first().text()) || 0,
+            };
 
-function findBattleTime() {
-    // Upraveno pro CZ i EN verzi - hledá buňku obsahující čas
-    var battleTimeText = $("#content_value").find("td:contains('Čas bitvy'), td:contains('Battle time')").next().text().trim();
-    // Odstranění milisekund pro základní parsování, pokud tam jsou
-    return Date.parse(battleTimeText.replace(/:\d{3}$/, ""));
-}
-
-function sortObject(obj) {
-    var sortable = [];
-    for (var key in obj)
-        if (obj.hasOwnProperty(key))
-            sortable.push([key, obj[key]]);
-    sortable.sort(function(a, b) {
-        return b[1] - a[1]; // Sestupně podle rychlosti (nejpomalejší první)
-    });
-    return sortable;
-}
-
-function findSlowestUsedUnit(units, unitSpeeds) {
-    let unitSpeedDesc = sortObject(unitSpeeds);
-    for (let i = 0; i < unitSpeedDesc.length; i++) {
-        let unitName = unitSpeedDesc[i][0];
-        if (units[unitName] > 0) {
-            console.log("NEJPOMALEJŠÍ JEDNOTKA: " + unitName);
-            return unitName;
+            calculateBacktimeTime(units, unitSpeedSettings, distance, battleTime);
+        } catch (e) {
+            UI.ErrorMessage("Chyba: " + e.message);
         }
     }
-}
 
-function calculateDistance(to, from) {
-    var target = to.match(/(\d+)\|(\d+)/);
-    var source = from.match(/(\d+)\|(\d+)/);
-    return Math.sqrt(Math.pow(source[1] - target[1], 2) + Math.pow(source[2] - target[2], 2));
-}
-
-function calculateBacktimeTime(units, unitSpeedSettings, distance, battleTime) {
-    let unitType = findSlowestUsedUnit(units, unitSpeedSettings);
-    if (!unitType) {
-        UI.ErrorMessage("Nebyly nalezeny žádné útočící jednotky.");
-        return;
+    function findBattleTime() {
+        var battleTimeCell = $("#content_value").find("td:contains('Čas bitvy'), td:contains('Battle time')").next();
+        var battleTimeText = battleTimeCell.text().trim();
+        // Návratové milisekundy jsou vždy 000, ignorujeme případné ms v reportu
+        return Date.parse(battleTimeText.replace(/:\d{3}$/, ""));
     }
 
-    let runtimeMinutes = unitSpeedSettings[unitType] * distance;
-    let unixLandDate = battleTime + (runtimeMinutes * 60 * 1000);
-    
-    let landDate = new Date(unixLandDate);
-    
-    Dialog.show("backtime_results", `<div>
-        <h3>Výsledek Backtimu (v0.1)</h3>
-        <p><strong>Čas bitvy:</strong> ${new Date(battleTime).toLocaleString('cs-CZ')}</p>
-        <p><strong>Nejpomalejší jednotka:</strong> ${unitType}<p>
-        <p><strong>Vzdálenost:</strong> ${distance.toFixed(2)} polí</p>
-        <p><strong>Doba cesty:</strong> ${toHoursAndMinutes(runtimeMinutes)}</p>
-        <hr>
-        <p style="font-size: 1.2em;"><strong>Čas návratu:</strong> <span style="color:red;">${landDate.toLocaleString('cs-CZ')}</span></p>
-    </div>`);
-}
+    function calculateDistance(to, from) {
+        var target = to.split('|');
+        var source = from.split('|');
+        return Math.sqrt(Math.pow(source[0] - target[0], 2) + Math.pow(source[1] - target[1], 2));
+    }
 
-function toHoursAndMinutes(totalMinutes) {
-    const totalSeconds = Math.round(totalMinutes * 60);
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-    return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-}
+    function findSlowestUsedUnit(units, unitSpeeds) {
+        let sortable = [];
+        for (var key in unitSpeeds) sortable.push([key, unitSpeeds[key]]);
+        sortable.sort((a, b) => b[1] - a[1]);
 
-Powered by TheBrain🧠
+        for (let i = 0; i < sortable.length; i++) {
+            if (units[sortable[i][0]] > 0) return sortable[i][0];
+        }
+        return null;
+    }
+
+    function calculateBacktimeTime(units, unitSpeedSettings, distance, battleTime) {
+        let unitType = findSlowestUsedUnit(units, unitSpeedSettings);
+        if (!unitType) {
+            UI.ErrorMessage("Nenalezeny žádné útočící jednotky.");
+            return;
+        }
+
+        // Výpočet: vteřiny cesty zaokrouhlené dolů (floor)
+        let travelTimeSeconds = Math.floor(unitSpeedSettings[unitType] * distance * 60);
+        
+        // Výsledný čas návratu (ms jsou vždy .000)
+        let unixReturnDate = battleTime + (travelTimeSeconds * 1000);
+        let returnDate = new Date(unixReturnDate);
+        
+        Dialog.show("backtime_results", `
+            <div style="padding: 10px;">
+                <h3 style="margin-bottom:10px;">Backtime Helper v0.3</h3>
+                <table class="vis" style="width:100%">
+                    <tr><td>Vzdálenost:</td><td><b>${distance.toFixed(2)} polí</b></td></tr>
+                    <tr><td>Nejpomalejší jednotka:</td><td><b>${unitType}</b></td></tr>
+                    <tr><td>Doba cesty:</td><td><b>${formatTime(travelTimeSeconds)}</b></td></tr>
+                    <tr style="background-color: #dfcca6;"><td style="font-size:1.1em;"><b>Čas návratu:</b></td>
+                    <td style="font-size:1.1em; color: #800000;"><b>${returnDate.toLocaleString('cs-CZ')}</b></td></tr>
+                </table>
+                <p style="font-size: 0.8em; margin-top:10px;"><i>Milisekundy jsou automaticky zarovnány na .000</i></p>
+            </div>
+        `);
+    }
+
+    function formatTime(totalSeconds) {
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    runScript();
+})();
+
+// Powered by TheBrain🧠
