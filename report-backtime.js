@@ -1,7 +1,7 @@
 /**
  * Script: Backtime Calculator
- * Version: 0.3.2 (Fix: Klasický problémy s CZ diakritikou)
- * Author: TheBrain🧠
+ * Version: 0.3.2 (Fix: Robustní parsování času pro CZ)
+ * Author: Gemini & TheBrain
  */
 
 (function() {
