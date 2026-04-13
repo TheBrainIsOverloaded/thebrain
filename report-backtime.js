@@ -1,6 +1,6 @@
 /**
  * Script: Backtime Calculator
- * Version: 0.3.2 (Fix: Robustní parsování času pro CZ)
+ * Version: 0.3.3 (Fix: Výpočet doby cesty a parsování rychlostí)
  * Author: Gemini & TheBrain
  */
 
@@ -11,7 +11,9 @@
     const runScript = () => {
         $.when($.get('/interface.php?func=get_unit_info')).done(function(xml) {
             $(xml).find('config').children().each((index, unit) => {
-                availableUnits[$(unit).prop('nodeName')] = parseFloat($(unit).find('speed').text());
+                let unitName = $(unit).prop('nodeName');
+                let unitSpeed = $(unit).find('speed').text();
+                availableUnits[unitName] = parseFloat(unitSpeed);
             });
             unitSpeedSettings = availableUnits;
         }).then(() => {
@@ -35,20 +37,14 @@
             var distance = calculateDistance(attackCoords, defenseCoords);
             let battleTimeMs = findBattleTime();
 
-            let units = {
-                "spear": parseInt($(".unit-item-spear").first().text()) || 0,
-                "sword": parseInt($(".unit-item-sword").first().text()) || 0,
-                "axe": parseInt($(".unit-item-axe").first().text()) || 0,
-                "archer": parseInt($(".unit-item-archer").first().text()) || 0,
-                "spy": parseInt($(".unit-item-spy").first().text()) || 0,
-                "light": parseInt($(".unit-item-light").first().text()) || 0,
-                "marcher": parseInt($(".unit-item-marcher").first().text()) || 0,
-                "heavy": parseInt($(".unit-item-heavy").first().text()) || 0,
-                "ram": parseInt($(".unit-item-ram").first().text()) || 0,
-                "catapult": parseInt($(".unit-item-catapult").first().text()) || 0,
-                "knight": parseInt($(".unit-item-knight").first().text()) || 0,
-                "snob": parseInt($(".unit-item-snob").first().text()) || 0,
-            };
+            // Sběr počtu jednotek - upravený selektor pro větší stabilitu
+            let units = {};
+            const unitTypes = ["spear", "sword", "axe", "archer", "spy", "light", "marcher", "heavy", "ram", "catapult", "knight", "snob"];
+            
+            unitTypes.forEach(type => {
+                let count = parseInt($(`.unit-item-${type}`).first().text());
+                units[type] = isNaN(count) ? 0 : count;
+            });
 
             calculateBacktimeTime(units, unitSpeedSettings, distance, battleTimeMs);
         } catch (e) {
@@ -58,34 +54,25 @@
 
     function findBattleTime() {
         var battleTimeCell = $("#content_value").find("td:contains('Čas bitvy'), td:contains('Battle time')").next();
-        // Použijeme textContent, aby se neořezaly důležité části, a nahradíme nezlomitelné mezery
-        var battleTimeText = battleTimeCell[0].textContent.trim().replace(/\u00a0/g, " "); 
+        if (!battleTimeCell.length) throw new Error("Nepodařilo se najít buňku s časem.");
         
-        // Vyhledáme všechna čísla v řetězci (den, měsíc, rok, hod, min, sek)
-        // Ignorujeme milisekundy na konci, pokud jich je víc než 6 (bereme prvních 6 čísel)
+        var battleTimeText = battleTimeCell[0].textContent.trim().replace(/\u00a0/g, " "); 
         var parts = battleTimeText.match(/\d+/g);
 
         if (!parts || parts.length < 6) {
-            throw new Error("Nepodařilo se přečíst formát času bitvy (nalezeno málo čísel).");
+            throw new Error("Nepodařilo se přečíst formát času bitvy.");
         }
 
-        // parts[0]=den, [1]=měsíc, [2]=rok, [3]=hodina, [4]=minuta, [5]=sekunda
         let day = parseInt(parts[0]);
         let month = parseInt(parts[1]) - 1;
         let year = parseInt(parts[2]);
-        if (year < 100) year += 2000; // Ošetření pro formát 26 -> 2026
+        if (year < 100) year += 2000;
         
         let hour = parseInt(parts[3]);
         let min = parseInt(parts[4]);
         let sec = parseInt(parts[5]);
 
-        let dateObj = new Date(year, month, day, hour, min, sec);
-        
-        if (isNaN(dateObj.getTime())) {
-            throw new Error("Vytvořené datum je neplatné.");
-        }
-
-        return dateObj.getTime();
+        return new Date(year, month, day, hour, min, sec).getTime();
     }
 
     function calculateDistance(to, from) {
@@ -96,32 +83,40 @@
 
     function findSlowestUsedUnit(units, unitSpeeds) {
         let sortable = [];
-        for (var key in unitSpeeds) sortable.push([key, unitSpeeds[key]]);
+        for (var key in unitSpeeds) {
+            if (unitSpeeds.hasOwnProperty(key)) sortable.push([key, unitSpeeds[key]]);
+        }
+        // Seřadíme od nejpomalejší (nejvyšší číslo speed) po nejrychlejší
         sortable.sort((a, b) => b[1] - a[1]);
 
         for (let i = 0; i < sortable.length; i++) {
-            if (units[sortable[i][0]] > 0) return sortable[i][0];
+            let uName = sortable[i][0];
+            if (units[uName] > 0) return uName;
         }
         return null;
     }
 
     function calculateBacktimeTime(units, unitSpeedSettings, distance, battleTimeMs) {
         let unitType = findSlowestUsedUnit(units, unitSpeedSettings);
+        
         if (!unitType) {
             UI.ErrorMessage("Nenalezeny žádné útočící jednotky.");
             return;
         }
 
-        let travelTimeSeconds = Math.floor(unitSpeedSettings[unitType] * distance * 60);
+        // Rychlost jednotky je v minutách na pole
+        let speed = unitSpeedSettings[unitType];
+        let travelTimeSeconds = Math.round(speed * distance * 60);
+        
         let unixReturnDate = battleTimeMs + (travelTimeSeconds * 1000);
         let returnDate = new Date(unixReturnDate);
         
         Dialog.show("backtime_results", `
             <div style="padding: 10px;">
-                <h3 style="margin-bottom:10px;">Backtime Helper v0.3.2</h3>
+                <h3 style="margin-bottom:10px;">Backtime Helper v0.3.3</h3>
                 <table class="vis" style="width:100%">
                     <tr><td>Vzdálenost:</td><td><b>${distance.toFixed(2)} polí</b></td></tr>
-                    <tr><td>Nejpomalejší jednotka:</td><td><b>${unitType}</b></td></tr>
+                    <tr><td>Nejpomalejší jednotka:</td><td><b>${unitType}</b> (rychlost ${speed})</td></tr>
                     <tr><td>Doba cesty:</td><td><b>${formatTime(travelTimeSeconds)}</b></td></tr>
                     <tr style="background-color: #dfcca6;"><td style="font-size:1.1em;"><b>Čas návratu:</b></td>
                     <td style="font-size:1.1em; color: #800000;"><b>${returnDate.toLocaleString('cs-CZ')}</b></td></tr>
