@@ -1,6 +1,6 @@
 /**
  * Script: Backtime Calculator
- * Version: 0.3.3 (Fix: Výpočet doby cesty a parsování rychlostí)
+ * Version: 0.3.4 (Fix: Robustní detekce časové buňky)
  * Author: Gemini & TheBrain
  */
 
@@ -37,7 +37,6 @@
             var distance = calculateDistance(attackCoords, defenseCoords);
             let battleTimeMs = findBattleTime();
 
-            // Sběr počtu jednotek - upravený selektor pro větší stabilitu
             let units = {};
             const unitTypes = ["spear", "sword", "axe", "archer", "spy", "light", "marcher", "heavy", "ram", "catapult", "knight", "snob"];
             
@@ -49,30 +48,38 @@
             calculateBacktimeTime(units, unitSpeedSettings, distance, battleTimeMs);
         } catch (e) {
             UI.ErrorMessage("Chyba: " + e.message);
+            console.error(e);
         }
     }
 
     function findBattleTime() {
-        var battleTimeCell = $("#content_value").find("td:contains('Čas bitvy'), td:contains('Battle time')").next();
-        if (!battleTimeCell.length) throw new Error("Nepodařilo se najít buňku s časem.");
-        
-        var battleTimeText = battleTimeCell[0].textContent.trim().replace(/\u00a0/g, " "); 
-        var parts = battleTimeText.match(/\d+/g);
+        let timeMs = null;
+        // Prohledáme všechny buňky td v hlavní části oznámení
+        $("#content_value table.vis td").each(function() {
+            let text = $(this).text().toLowerCase();
+            // Hledáme buňku, která obsahuje "čas boje" nebo "battle time"
+            if (text.includes("čas boje") || text.includes("battle time")) {
+                let timeText = $(this).next().text().trim().replace(/\u00a0/g, " ");
+                let parts = timeText.match(/\d+/g);
 
-        if (!parts || parts.length < 6) {
-            throw new Error("Nepodařilo se přečíst formát času bitvy.");
-        }
+                if (parts && parts.length >= 6) {
+                    let day = parseInt(parts[0]);
+                    let month = parseInt(parts[1]) - 1;
+                    let year = parseInt(parts[2]);
+                    if (year < 100) year += 2000;
+                    
+                    let hour = parseInt(parts[3]);
+                    let min = parseInt(parts[4]);
+                    let sec = parseInt(parts[5]);
 
-        let day = parseInt(parts[0]);
-        let month = parseInt(parts[1]) - 1;
-        let year = parseInt(parts[2]);
-        if (year < 100) year += 2000;
-        
-        let hour = parseInt(parts[3]);
-        let min = parseInt(parts[4]);
-        let sec = parseInt(parts[5]);
+                    timeMs = new Date(year, month, day, hour, min, sec).getTime();
+                    return false; // ukončí .each cyklus
+                }
+            }
+        });
 
-        return new Date(year, month, day, hour, min, sec).getTime();
+        if (!timeMs) throw new Error("Nepodařilo se najít nebo přečíst buňku s časem boje.");
+        return timeMs;
     }
 
     function calculateDistance(to, from) {
@@ -86,7 +93,6 @@
         for (var key in unitSpeeds) {
             if (unitSpeeds.hasOwnProperty(key)) sortable.push([key, unitSpeeds[key]]);
         }
-        // Seřadíme od nejpomalejší (nejvyšší číslo speed) po nejrychlejší
         sortable.sort((a, b) => b[1] - a[1]);
 
         for (let i = 0; i < sortable.length; i++) {
@@ -104,19 +110,17 @@
             return;
         }
 
-        // Rychlost jednotky je v minutách na pole
         let speed = unitSpeedSettings[unitType];
         let travelTimeSeconds = Math.round(speed * distance * 60);
-        
         let unixReturnDate = battleTimeMs + (travelTimeSeconds * 1000);
         let returnDate = new Date(unixReturnDate);
         
         Dialog.show("backtime_results", `
             <div style="padding: 10px;">
-                <h3 style="margin-bottom:10px;">Backtime Helper v0.3.3</h3>
+                <h3 style="margin-bottom:10px;">Backtime Helper v0.3.4</h3>
                 <table class="vis" style="width:100%">
                     <tr><td>Vzdálenost:</td><td><b>${distance.toFixed(2)} polí</b></td></tr>
-                    <tr><td>Nejpomalejší jednotka:</td><td><b>${unitType}</b> (rychlost ${speed})</td></tr>
+                    <tr><td>Nejpomalejší jednotka:</td><td><b>${unitType}</b></td></tr>
                     <tr><td>Doba cesty:</td><td><b>${formatTime(travelTimeSeconds)}</b></td></tr>
                     <tr style="background-color: #dfcca6;"><td style="font-size:1.1em;"><b>Čas návratu:</b></td>
                     <td style="font-size:1.1em; color: #800000;"><b>${returnDate.toLocaleString('cs-CZ')}</b></td></tr>
